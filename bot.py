@@ -10,6 +10,7 @@ from StringIO import StringIO
 import urllib2
 
 from hentai_secret import *
+from mybotthing import pullTweets
 
 
 def get_booru():
@@ -40,32 +41,29 @@ def replace_booru(string, inserting):
 
 if __name__ == "__main__":
     api = twitter.Api(consumer_key=CONSUMER_KEY, consumer_secret=CONSUMER_SECRET, access_token_key=ACCESS_TOKEN_KEY, access_token_secret=ACCESS_TOKEN_SECRET)
-
-    statuses = []
-    for i in range(1, 20):
-        next_statuses = api.GetUserTimeline(screen_name='hentaiphd', page=i, count=200)
-        for s in next_statuses:
-            statuses.append(s)
+    
+    statuses = pullTweets()
 
     store = defaultdict(list)
     for s in statuses:
-        words = s.text.split(' ')
-        for word in words:
-            if words.index(word) < len(words) - 1:
-                index = words.index(word) + 1
+        words = s.split(' ')
+        for i,word in enumerate(words):
+            if i < len(words) - 1:
+                index = i + 1
                 store[word].append(words[index])
+
 
 
     while True:
         word = random.choice(store.keys())
         status = word
-        while len(status) < 50 and store[word]:
+        while len(status) < 55 and store[word]:
             word = random.choice(store[word])
             status += " %s" % (word,)
 
-        status = replace_booru(status, get_booru())
         status = status.replace('@', '')
 
+        print status
         api.PostUpdate(status)
 
-        time.sleep(5*60)
+        time.sleep(10*60)
